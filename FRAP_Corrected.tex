@@ -1,0 +1,140 @@
+\documentclass[aps, prl, preprint]{revtex4-1}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{courier}
+\usepackage{graphicx}
+\usepackage{physics}
+\usepackage{mathrsfs}
+\usepackage{color}
+
+\begin{document}
+
+\title{Super Brief FRAP Note}
+\author{Garrett Higginbotham}
+\email{ghiggie@uab.edu}
+\affiliation{Department of Physics\\The University of Alabama at Birmingham}
+\date{\today}
+
+\begin{abstract}
+
+This is an extension of my previous FRAP code in which I better encode the reaction process, and I further allow the product particles to diffuse (if someone doesn't like that, they can just put the $k_{off}$ value for that particle to be $0$). This is going to fucking suck, so I am (for the moment) only writing this note to help me to verify the validity of my equations.
+
+\end{abstract}
+
+\maketitle
+
+\section{Model}
+
+I will allow all the particles to possible diffuse in order to induce symmetry in my program. I want the only exceptional particles to be due to the binding process. The reaction I am modeling is
+\begin{equation}
+A + B \leftrightarrow C
+\end{equation}
+In order to take into account the FRAP process, I need to define what happens when you bind bleached particles with unbleached particles. Therefore, I define the more detailed reaction scheme as follows:
+\begin{align*}
+Au + Bu &\leftrightarrow Cuu\\
+Au + Bb &\leftrightarrow Cub\\
+Ab + Bu &\leftrightarrow Cbu\\
+Ab + Bb &\leftrightarrow Cbb
+\end{align*}
+The ultimate goal is to model the following reaction scheme under a FRAP experiment:
+\begin{align*}
+A + B &\leftrightarrow C\\
+C &\leftrightarrow D\\
+D &\leftrightarrow A + E
+\end{align*}
+In order to model the first reaction, I need the following equations:
+
+\begin{itemize}
+\item $Au$
+	\begin{itemize}
+		\item Initial Volume: $Au(x,0) = \widetilde{Au}(x)$
+		\item Initial Surface: $\sigma_{Au}(0) = \widetilde{\sigma_{Au}}$
+		\item Diffusion: $\frac{\partial Au}{\partial t} = D_{Au}\frac{\partial^2Au}{\partial x^2}$
+		\item Left Flux: $\left . \frac{\partial Au}{\partial x}\right | _{x=0} = 0$
+		\item Right Flux: $\left . -D_{Au}\frac{\partial Au}{\partial x}\right |_{x=L} =k_{on}^{Au}Au(L,t) - k_{off}^{Au}\sigma_{Au}(t)$
+		\item Reaction: $$\frac{\dd \sigma_{Au}}{\dd t}=k_{on}^{Au}Au(L,t)-(k_{off}^{Au}+k_{bind}^{uu}\sigma_{Bu}+k_{bind}^{ub}\sigma_{Bb})\sigma_{Au}+k_{dis}^{uu}\sigma_{cuu}+k_{dis}^{ub}\sigma_{Cub}$$
+	
+	\end{itemize}
+
+\item $Bu$
+	\begin{itemize}
+		\item Initial Volume: $Bu(x,0) = \widetilde{Bu}(x)$
+		\item Initial Surface: $\sigma_{Bu}(0) = \widetilde{\sigma_{Bu}}$
+		\item Diffusion: $\frac{\partial Bu}{\partial t} = D_{Bu}\frac{\partial^2Bu}{\partial x^2}$
+		\item Left Flux: $\left . \frac{\partial Bu}{\partial x}\right | _{x=0} = 0$
+		\item Right Flux: $\left . -D_{Bu}\frac{\partial Bu}{\partial x}\right |_{x=L} =k_{on}^{Bu}Bu(L,t) - k_{off}^{Bu}\sigma_{Bu}(t)$
+		\item Reaction: $$\frac{\dd \sigma_{Bu}}{\dd t}=k_{on}^{Bu}Bu(L,t)-(k_{off}^{Bu}+k_{bind}^{uu}\sigma_{Au}+k_{bind}^{bu}\sigma_{Ab})\sigma_{Bu}+k_{dis}^{uu}\sigma_{Cuu}+k_{dis}^{bu}\sigma_{Cbu}$$
+
+	\end{itemize}
+
+\item $Ab$
+	\begin{itemize}
+		\item Initial Volume: $Ab(x,0) = \widetilde{Ab}(x)$
+		\item Initial Surface: $\sigma_{Ab}(0) = \widetilde{\sigma_{Ab}}$
+		\item Diffusion: $\frac{\partial Ab}{\partial t} = D_{Ab}\frac{\partial^2Ab}{\partial x^2}$
+		\item Left Flux: $\left . \frac{\partial Ab}{\partial x}\right | _{x=0} = 0$
+		\item Right Flux: $\left . -D_{Ab}\frac{\partial Ab}{\partial x}\right |_{x=L} =k_{on}^{Ab}Ab(L,t) - k_{off}^{Ab}\sigma_{Ab}(t)$
+		\item Reaction: $$\frac{\dd \sigma_{Ab}}{\dd t}=k_{on}^{Ab}Ab(L,t)-(k_{off}^{Ab}+k_{bind}^{bu}\sigma_{Bu}+k_{bind}^{bb}\sigma_{Bb})\sigma_{Ab}+k_{dis}^{bu}\sigma_{Cbu}+k_{dis}^{bb}\sigma_{Cbb}$$
+	
+	\end{itemize}
+
+\item $Bb$
+	\begin{itemize}
+		\item Initial Volume: $Bb(x,0) = \widetilde{Bb}(x)$
+		\item Initial Surface: $\sigma_{Bb}(0) = \widetilde{\sigma_{Bb}}$
+		\item Diffusion: $\frac{\partial Bb}{\partial t} = D_{Bb}\frac{\partial^2Bb}{\partial x^2}$
+		\item Left Flux: $\left . \frac{\partial Bb}{\partial x}\right | _{x=0} = 0$
+		\item Right Flux: $\left . -D_{Bb}\frac{\partial Bb}{\partial x}\right |_{x=L} =k_{on}^{Bb}Bb(L,t) - k_{off}^{Bb}\sigma_{Bb}(t)$
+		\item Reaction: $$\frac{\dd \sigma_{Bb}}{\dd t}=k_{on}^{Bb}Bb(L,t)-(k_{off}^{Bb}+k_{bind}^{ub}\sigma_{Au}+k_{bind}^{bb}\sigma_{Ab})\sigma_{Bb}+k_{dis}^{ub}\sigma_{Cub}+k_{dis}^{bb}\sigma_{Cbb}$$
+	
+	\end{itemize}
+
+\item $Cuu$
+	\begin{itemize}
+		\item Initial Volume: $Cuu(x,0) = \widetilde{Cuu}(x)$
+		\item Initial Surface: $\sigma_{Cuu}(0) = \widetilde{\sigma_{Cuu}}$
+		\item Diffusion: $\frac{\partial Cuu}{\partial t} = D_{Cuu}\frac{\partial^2Cuu}{\partial x^2}$
+		\item Left Flux: $\left . \frac{\partial Cuu}{\partial x}\right | _{x=0} = 0$
+		\item Right Flux: $\left . -D_{Cuu}\frac{\partial Cuu}{\partial x}\right |_{x=L} =k_{on}^{Cuu}Cuu(L,t) - k_{off}^{Cuu}\sigma_{Cuu}(t)$
+		\item Reaction: $$\frac{\dd \sigma_{Cuu}}{\dd t}=k_{on}^{Cuu}Cuu(L,t)-(k_{off}^{Cuu}+k_{dis}^{uu})\sigma_{Cuu}+k_{bind}^{uu}\sigma_{Au}\sigma_{Bu}$$
+	
+	\end{itemize}
+
+\item $Cub$
+	\begin{itemize}
+		\item Initial Volume: $Cub(x,0) = \widetilde{Cub}(x)$
+		\item Initial Surface: $\sigma_{Cub}(0) = \widetilde{\sigma_{Cub}}$
+		\item Diffusion: $\frac{\partial Cub}{\partial t} = D_{Cub}\frac{\partial^2Cub}{\partial x^2}$
+		\item Left Flux: $\left . \frac{\partial Cub}{\partial x}\right | _{x=0} = 0$
+		\item Right Flux: $\left . -D_{Cub}\frac{\partial Cub}{\partial x}\right |_{x=L} =k_{on}^{Cub}Cub(L,t) - k_{off}^{Cub}\sigma_{Cub}(t)$
+		\item Reaction: $$\frac{\dd \sigma_{Cub}}{\dd t}=k_{on}^{Cub}Cub(L,t)-(k_{off}^{Cub}+k_{dis}^{ub})\sigma_{Cub}+k_{bind}^{ub}\sigma_{Au}\sigma_{Bb}$$
+	
+	\end{itemize}
+
+\item $Cbu$
+	\begin{itemize}
+		\item Initial Volume: $Cbu(x,0) = \widetilde{Cbu}(x)$
+		\item Initial Surface: $\sigma_{Cbu}(0) = \widetilde{\sigma_{Cbu}}$
+		\item Diffusion: $\frac{\partial Cbu}{\partial t} = D_{Cbu}\frac{\partial^2Cbu}{\partial x^2}$
+		\item Left Flux: $\left . \frac{\partial Cbu}{\partial x}\right | _{x=0} = 0$
+		\item Right Flux: $\left . -D_{Cbu}\frac{\partial Cbu}{\partial x}\right |_{x=L} =k_{on}^{Cbu}Cbu(L,t) - k_{off}^{Cbu}\sigma_{Cbu}(t)$
+		\item Reaction: $$\frac{\dd \sigma_{Cbu}}{\dd t}=k_{on}^{Cbu}Cbu(L,t)-(k_{off}^{Cbu}+k_{dis}^{bu})\sigma_{Cbu}+k_{bind}^{bu}\sigma_{Ab}\sigma_{Bu}$$
+	
+	\end{itemize}
+
+\item $Cbb$
+	\begin{itemize}
+		\item Initial Volume: $Cbb(x,0) = \widetilde{Cbb}(x)$
+		\item Initial Surface: $\sigma_{Cbb}(0) = \widetilde{\sigma_{Cbb}}$
+		\item Diffusion: $\frac{\partial Cbb}{\partial t} = D_{Cbb}\frac{\partial^2Cbb}{\partial x^2}$
+		\item Left Flux: $\left . \frac{\partial Cbb}{\partial x}\right | _{x=0} = 0$
+		\item Right Flux: $\left . -D_{Cbb}\frac{\partial Cbb}{\partial x}\right |_{x=L} =k_{on}^{Cbb}Cbb(L,t) - k_{off}^{Cbb}\sigma_{Cbb}(t)$
+		\item Reaction: $$\frac{\dd \sigma_{Cbb}}{\dd t}=k_{on}^{Cbb}Cbb(L,t)-(k_{off}^{Cbb}+k_{dis}^{bb})\sigma_{Cbb}+k_{bind}^{bb}\sigma_{Ab}\sigma_{Bb}$$
+	
+	\end{itemize}
+
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,153 @@
+\documentclass[aps, prl, preprint]{revtex4-1}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{courier}
+\usepackage{graphicx}
+\usepackage{physics}
+\usepackage{mathrsfs}
+\usepackage{color}
+
+\begin{document}
+
+\title{One-Dimensional Reaction-Diffusion Equations: Numerical Solution and Algorithm}
+\author{Garrett Higginbotham}
+\email{ghiggie@uab.edu}
+\affiliation{Department of Physics\\The University of Alabama at Birmingham}
+\date{\today}
+
+\begin{abstract}
+We consider a one-dimensional reaction diffusion process consisting of three particle types. Particles $A$ and $B$ may freely diffuse throughout the volume of the system, as well as diffuse onto the right-most boundary. Of those particles that diffuse onto the boundary, particles of type $A$ and $B$ may react to form particle $C$. Particle $C$ is restricted to remain on the boundary, and it is allowed to disassociate back into $A$ and $B$.
+\end{abstract}
+
+\maketitle
+
+\section{Model}
+
+Establish a coordinate system so that the left-edge of the volume is labeled with $x=0$ and the right-edge is labeled with $x=L$. Within the volume, particles $A$ and $B$ are allowed to diffuse according to the standard diffusion equation:
+\begin{subequations}\label{eq:diffusion}
+\begin{align}
+\frac{\partial n_A(x,t)}{\partial t} &= D_A \frac{\partial^2 n_A(x,t)}{\partial x^2}\\
+\frac{\partial n_B(x,t)}{\partial t} &= D_B \frac{\partial^2 n_B(x,t)}{\partial x^2}
+\end{align}
+\end{subequations}
+where $n_l(x,t)$ denotes the concentration of particle $l$ at space-time position $(x,t)$, and $D_l$ represents the corresponding diffusion constant (we consider the particles to not be interacting with each other, and we may thus safely assume the diffusion constant to actually be constant). We assume that the $x=0$ boundary enforces zero flux of the particles, which may be expressed as
+\begin{subequations}\label{eq:lb}
+\begin{align}
+\left . \frac{\partial n_A(x,t)}{\partial x}\right |_{x=0} &= 0\\
+\left . \frac{\partial n_B(x,t)}{\partial x}\right |_{x=0} &= 0
+\end{align}
+\end{subequations}
+Let $\sigma_l(t)$ denote the concentration of particle $l$ once it has diffused onto the $x=L$ boundary, and let $k_{on}^l$ and $k_{off}^l$ denote the association and disassociation rates of particle $l$ on and off the membrane, respectively. Finally, we assume that particles $A$ and $B$ bind together in equal proportions to create particle $C$ with reaction rate $k_{bind}$, and that particle $C$ may then disassociate back into $A$ and $B$ with rate $k_{dis}$. The concentration of particles diffused onto the $x=L$ boundary may then be expressed as
+\begin{subequations}\label{eq:surfdensity}
+\begin{align}
+\frac{d \sigma_A(t)}{d t} &= k_{on}^A n_A(L,t) -k_{off}^A \sigma_A(t) - k_{bind}\sigma_A(t)\sigma_B(t) + k_{dis}\sigma_C(t)\\
+\frac{d \sigma_B(t)}{d t} &= k_{on}^B n_B(L,t) -k_{off}^B \sigma_B(t) - k_{bind}\sigma_A(t)\sigma_B(t) + k_{dis}\sigma_C(t)\\
+\frac{d \sigma_C(t)}{d t} &= k_{bind}\sigma_A(t)\sigma_B(t) - k_{dis}\sigma_C(t)
+\end{align}
+\end{subequations}
+Finally, the flux at $x=L$ may be expressed as
+\begin{subequations}\label{eq:rb}
+\begin{align}
+\left . D_A\frac{\partial n_A(x,t)}{\partial x}\right |_{x=L} &= -k_{on}^A n_A(L,t) + k_{off}^A\sigma_A(t)\\
+\left . D_B\frac{\partial n_B(x,t)}{\partial x}\right |_{x=L} &= -k_{on}^B n_B(L,t) + k_{off}^B\sigma_B(t)
+\end{align}
+\end{subequations}
+In this model, we assume that particle $C$ is only allowed to exist at $x=L$.
+
+\color{red}Talk about FRAP\normalcolor \color{blue} NO DON'T TALK ABOUT FRAP IT NEEDS ANOTHER PAPER BY ITSELF\normalcolor
+
+\section{Steady-State Solutions}
+
+We will now consider the steady states of the system. For the steady-state solutions, we must have $$\frac{d\sigma_A}{dt}=\frac{d\sigma_B}{dt}=\frac{d\sigma_C}{dt}=0.$$ Substituting these into equation~\ref{eq:surfdensity}, we obtain the following steady-state ratios:
+\begin{subequations}\label{eq:ss}
+\begin{align}
+\frac{k_{on}^A}{k_{off}^A} &= \frac{\sigma_A(t^*)}{n_A(L, t^*)}\\
+\frac{k_{on}^B}{k_{off}^B} &= \frac{\sigma_B(t^*)}{n_B(L, t^*)}\\
+\frac{k_{bind}}{k_{dis}} &= \frac{\sigma_C(t^*)}{\sigma_A(t^*)\sigma_B(t^*)}
+\end{align}
+\end{subequations}
+
+\section{Numerical Paradigm}
+
+In order to simulate this system of equations, we will begin by slicing space-time in a grid-like manner. Let $\Delta x$ and $\Delta t$ denote the lengths of the spatial and temporal slices, respectively, and denote the coordinates by $x_i = i\Delta x, i\geq 0$ and $t_j = j\Delta t, j\geq 0$. Let $x_N = L$, so that we then have $\Delta x = \frac{L}{N}$. At each coordinate of space-time, we may associate a value for the particle concentrations, and we denote these values by $n_l^{i,j} = n_l(x_i, t_j)$ and $\sigma_l^j = \sigma_l(t_j)$. Because we have discretized the space, we may no longer use calculus. However, if we choose $\Delta x$ and $\Delta t$ correctly (the appropriate choice will be discussed later), we may approximate the derivatives in our system via finite differences.
+
+Using finite differences, equation~\ref{eq:diffusion} may be expressed as
+\begin{equation}\label{eq:disdiff}
+n_l^{i,j+1} = n_l^{i,j} + \dfrac{D_l\Delta t}{(\Delta x)^2}\left [n_l^{i+1,j}-2n_l^{i,j}+n_l^{i-1,j}\right ], 0 < i < N
+\end{equation}
+Note (importantly) that this is inadequate for computing the values $n_l^{0,j}$ and $n_l^{N,j}$. We may compute $n_l^{0,j}$ via the discretized version of equation~\ref{eq:lb}:
+\begin{equation}\label{eq:dislb}
+n_l^{0,j} = n_l^{1,j}
+\end{equation}
+as well as compute $n_l^{N,j}$ from the discretized version of equation~\ref{eq:rb}:
+\begin{equation}\label{eq:disrb}
+n_l^{N,j} = \dfrac{D_l}{D_l+k_{kon}^l\Delta x}n_l^{N-1,j} +\dfrac{k_{off}^l\Delta x}{D_l+k_{on}^l\Delta x}\sigma_l^j
+\end{equation}
+
+Finally, we may compute the time evolution of $\sigma_l$ from the discretized version of equation~\ref{eq:surfdensity}. For particles $A$ and $B$, we have
+\begin{equation}\label{eq:disdenAB}
+\sigma_l^{j+1} = (1-k_{off}^l\Delta t)\sigma_l^j +\Delta t\left [k_{on}^l n_l^{N,j} -k_{bind}\sigma_A^j\sigma_B^j + k_{dis}\sigma_C^j\right ]
+\end{equation}
+and for particle $C$ we have
+\begin{equation}\label{eq:disdenC}
+\sigma_C^{j+1} = (1-k_{dis}\Delta t)\sigma_C^j + k_{bind}\Delta t\sigma_A^j\sigma_B^j
+\end{equation}
+We are now ready to develop an algorithm to compute everything.
+
+\section{Numerical Accuracy}
+
+In free diffusion, the variance in position is related to time via $\langle x^2\rangle = 2Dt$. Thus, the time step $\Delta t$ must be taken to be small enough to ensure that adequate information is transferred in the spatial direction: $\Delta t << \frac{\Delta x^2}{2D}$.
+
+Since we have two distinct particles, we must have $$\Delta t << \min_{l=A,B}\left\lbrace\frac{\Delta x^2}{2D_l}\right\rbrace$$. From equations~\ref{eq:disdenAB} and ~\ref{eq:disdenC}, we also see that we must have $\Delta t>>0$ and $\Delta t << \min_{l=A,B}\left\lbrace\frac{1}{k_{on}^l},\frac{1}{k_{bind}}, \frac{1}{k_{dis}}\right\rbrace$. Putting all these together, we obtain the convergence condition
+\begin{equation}\label{eq:conv}
+0 << \Delta t << \min_{l=A,B}\left\lbrace\frac{\Delta x^2}{2D_l}, \frac{1}{k_{on}^l}, \frac{1}{k_{bind}},\frac{1}{k_{dis}}\right\rbrace
+\end{equation}
+\color{red}Have I made a mistake or overlooked something? It seems to me that $k_{off}^l$ doesn't come into play with the convergence condition.\normalcolor
+
+
+
+
+
+
+
+
+
+
+\section{Algorithm}
+
+\begin{enumerate}
+\item Choose the constants of the system.
+	\begin{itemize}
+	\item Be sure to set $D_l$, $k_{on}^l$, $k_{off}^l$, $k_{bind}$, and $k_{dis}$.
+	\item Set the length $L$ of the system, and set the number of spatial slices $N$. Then, we may take $\Delta x = \frac{L}{N}$.
+	\item Set the time limit $T$ of the system, and set the number of temporal slices $M$. Then, we may take $\Delta t = \frac{T}{M}$.
+	\end{itemize}
+\item Initialize the concentrations of the system.
+	\begin{itemize}
+	\item For the volume concentrations, set $n_l^{i,0}=\widetilde{n_l}^i$; i.e., functions only of position. Do this only for $0 < i < N$.
+	\item For the surface concentrations, set $\sigma_l^0 = \sigma_l$; i.e., constant values.
+	\item Set $\widetilde{n_l}^1 = \widetilde{n_l}^2$, due to equation~\ref{eq:dislb}.
+	\item Use equation~\ref{eq:disrb} to compute $\widetilde{n_l}^N$.
+	\end{itemize}
+\item We may now calculate the time evolution of the system. Assume without loss of generality that we are currently at time step $j$.
+	\begin{itemize}
+	\item Use equation~\ref{eq:disdiff} to compute $n_l^{i,j+1}$ for $0 < i < N$.
+	\item In accordance with equation~\ref{eq:dislb}, set $n_l^{1,j+1}=n_l^{2,j+1}$.
+	\item Use equations~\ref{eq:disdenAB} and ~\ref{eq:disdenC} to compute $\sigma_l^{j+1}$.
+	\item Use equation~\ref{eq:disrb} to compute $n_l^{N,j+1}$.
+	\end{itemize}
+\end{enumerate}
+
+\section{Intermediate Questions}
+
+\begin{enumerate}
+\item What conservation laws could we use to test our program? In the case where we neglect reactions, we must have conservation of mass. But that isn't the case for a reaction simulation. Do conservation laws for this system even exist? Maybe we could verify some thermodynamic laws.
+\end{enumerate}
+
+\section{MATLAB Script}
+
+\section{Results}
+
+\end{document}

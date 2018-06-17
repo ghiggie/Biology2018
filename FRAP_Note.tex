@@ -1,0 +1,47 @@
+\documentclass[aps, prl, preprint]{revtex4-1}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{courier}
+\usepackage{graphicx}
+\usepackage{physics}
+\usepackage{mathrsfs}
+\usepackage{color}
+
+\begin{document}
+
+\title{FRAP Note}
+\author{Garrett Higginbotham}
+\email{ghiggie@uab.edu}
+\affiliation{Department of Physics\\The University of Alabama at Birmingham}
+\date{\today}
+
+\begin{abstract}
+This will be a quick note about the reaction-diffusion model with FRAP. The issue is that FRAP changes the three particle problem into a six particle problem. This largely doesn't present a problem except for the reaction, and it makes the right boundary condition more difficult to express. We once again consider a one-dimensional system, with the left side at $x=0$ and the right side at $x=L$. At a time $t^F$, the system is FRAPed. I will allow for the possibility that initially some of the particles are bleached and some aren't. Further, some will be allowed to reside on the membrane. Within the volume, each particle must obey $$ \frac{\partial n_l}{\partial t} = D_l \frac{\partial^2 n_l}{\partial x^2},$$ where $l = AB, AU, BB, BU$. At $x=0$, we require a zero-flux boundary, which may be expressed as $$\left . \frac{\partial n_l}{\partial x} \right |_{x = 0} = 0.$$ On the surface, we allow $C$ particles to be formed from $A$ and $B$ particles, as described by the following:
+\begin{align*}
+\frac{d \sigma_{CB}}{dt} &= k_{bind}^B\sigma_{AB}\sigma_{BB} - k_{dis}^B\sigma_{CB}\\
+\frac{d \sigma_{CU}}{dt} &= k_{bind}^U(\sigma_{AB}\sigma_{BU}+\sigma_{AU}\sigma_{BB}+\sigma_{AU}\sigma_{BU}) - k_{dis}^U\sigma_{CU}\\
+\frac{d\sigma_l}{dt} &= k_{on}^ln_l(L,t) - k_{off}^l\sigma_l(t) - k_{bind}^B\sigma_{AB}\sigma_{BB} -k_{bind}^U(\sigma_{AB}\sigma_{BU}+\sigma_{AU}\sigma_{BB}+\sigma_{AU}\sigma_{BU}) + k_{dis}^B\sigma_{CB}+k_{dis}^U\sigma_{CU}
+\end{align*}
+These previous equations are developed from the following reaction scheme:
+\begin{align*}
+\text{unbleached} + \text{unbleached} &\rightarrow \text{unbleached}\\
+\text{unbleached} + \text{bleached} &\rightarrow \text{unbleached}\\
+\text{bleached} + \text{unbleached} &\rightarrow \text{unbleached}\\
+\text{bleached} + \text{bleached} &\rightarrow \text{bleached}
+\end{align*}
+The flux at $x = L$ may be expressed as $$\left .-D_l\frac{\partial n_l}{\partial x}\right |_{x=L} = k_{on}^l n_l(L,t) - k_{off}^l \sigma_l(t).$$
+\end{abstract}
+
+\maketitle
+
+
+
+
+
+
+
+
+
+\end{document}
